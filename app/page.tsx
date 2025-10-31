@@ -1,27 +1,25 @@
-import BuggyApp from './components/BuggyApp'
+import AdDraftApp from './components/AdDraftApp'
 
 export const metadata = {
-  title: 'State Sync Bug Challenge | React State Management Test',
-  description: 'Test your React and Zustand state management skills by finding and fixing 3 interconnected bugs in view synchronization.',
+  title: 'Ad Draft State Sync Challenge | React State Management',
+  description: 'Solve a real-world state synchronization problem in an ad drafting tool. Can you prevent data loss when switching between views?',
   keywords: [
     'react state management',
-    'zustand bugs',
-    'useEffect debugging',
+    'zustand',
     'state synchronization',
     'react hooks',
-    'closure bugs',
-    'debounced state',
+    'useEffect',
+    'state forking',
     'react challenge',
     'frontend debugging',
-    'state sync bugs'
   ],
   openGraph: {
-    title: 'State Sync Bug Challenge | React State Management Test',
-    description: 'Find and fix 3 challenging bugs in React state synchronization. Test your understanding of useEffect, closures, and Zustand.',
+    title: 'Ad Draft State Sync Challenge',
+    description: 'Fix the state sync bug that causes users to lose their work when switching between Gallery and Table modes.',
     type: 'website',
   }
 }
 
 export default function Page() {
-  return <BuggyApp />
+  return <AdDraftApp />
 }

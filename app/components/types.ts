@@ -1,18 +1,18 @@
 /**
- * TypeScript type definitions for State Sync Challenge
+ * TypeScript type definitions for Ad Draft Challenge
  */
 
 export type ViewMode = 'gallery' | 'table';
 
-export interface FormData {
+export interface AdCopy {
   headline: string;
-  callToAction: string;
   description: string;
-  link: string;
+  callToAction: string;
+  launchAs: 'active' | 'paused';
 }
 
 export interface StoreState {
-  data: FormData;
-  updateField: (field: keyof FormData, value: string) => void;
-  updateAll: (data: FormData) => void;
+  adCopy: AdCopy;
+  updateField: (field: keyof AdCopy, value: string) => void;
+  updateAll: (data: AdCopy) => void;
 }
