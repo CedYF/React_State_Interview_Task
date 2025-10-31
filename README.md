@@ -1,50 +1,49 @@
 # React State Sync Challenge
 
-A practical React coding challenge focused on state management, useEffect dependencies, and debugging real-world synchronization bugs.
+A practical React coding challenge focused on state synchronization between multiple views of the same data.
 
 ## Overview
 
-This challenge simulates a common real-world scenario: building a form that can be viewed in multiple ways (Gallery View and Table View), where each view needs to maintain its own local state while still syncing with a global Zustand store.
+This challenge simulates a real-world scenario: building an ad drafting tool where users can create ads in two different modes (Gallery View and Table View), each with different use cases. The challenge is to fix a critical state synchronization bug that causes users to lose their work when switching between views.
 
-**Your Mission:** Fix 2 critical bugs in state synchronization logic.
+**Your Mission:** Fix the state synchronization logic so that unique edits in Table Mode are preserved when switching between views.
 
-## The Challenge
+## The Problem
 
-### Challenge 1: Implement State Forking
+### The Customer Use Case
 
-**Current Broken Behavior:**
-- Both views ALWAYS sync from the store on every store change
-- Local edits get immediately overwritten when the other view saves
-- Try it: Type in Gallery, then immediately type in Table - your Gallery edits vanish!
+You're building an ad drafting tool where customers can create ads using two different modes:
 
-**What You Need to Fix:**
-- When NO changes are made: Views should sync from store
-- When changes ARE made: Each view should maintain its own local state (forking)
-- Gallery View: Should use debounced saves (500ms delay)
-- Table View: Should use immediate saves
-- When switching views: Should show the latest SAVED state only
+1. **Gallery Mode**: Launch 2 ads (one per media) using the **SAME copy** for both ads
+2. **Table Mode**: Launch 2 ads with **UNIQUE copy** for each media
 
-**Why This Matters:** This is a common pattern in production apps with multiple synchronized views (think Google Docs, Notion, Figma). Understanding state forking prevents user frustration and data loss.
+### The Bug
 
-### Challenge 2: Fix the Catastrophic Infinite Loop Bug
+When a user:
+1. Switches to Table Mode
+2. Makes unique edits to any row (e.g., changes Row 2's headline to "Audiobooks Made Easy!")
+3. Switches to Gallery Mode
+4. Switches back to Table Mode
 
-**How to Reproduce:**
-1. Open the app in Gallery View
-2. Enter ANY text in the Link URL field
-3. Watch your browser tab freeze and crash within 2 seconds
+**❌ The Problem:** All unique edits are lost! Both rows get reset to the same copy from the store.
 
-**What's Happening:**
-- Link validation auto-formats URLs (adds `https://` prefix, toggles trailing slash)
-- The validation runs on EVERY render with NO guards
-- It updates BOTH local state AND store simultaneously
-- Store update triggers sync effect, which triggers validation again
-- Loop repeats hundreds of times per second until browser crashes
+### Why This Happens
 
-**What You Need to Fix:**
-- Identify the problematic useEffect
-- Add proper guards/conditions to prevent infinite loops
-- Link validation should work without causing re-renders
-- Page should remain responsive with any link input
+Both `GalleryView` and `TableView` have `useEffect` hooks that sync from the Zustand store on every store change. When you:
+- Edit Row 2 in Table Mode → Row 2 gets unique state
+- Switch to Gallery Mode → Gallery View syncs from store (still has old data)
+- Switch back to Table Mode → Table View's effect runs and overwrites ALL rows with store data
+
+**The store never knew about Row 2's unique edits**, so they get lost when the view re-syncs.
+
+## Your Task
+
+Fix the state synchronization so that:
+
+- ✅ **Initially**: Both Gallery and Table modes sync from the store (they start with the same data)
+- ✅ **When editing in Table Mode**: Each row can "fork" from the store and maintain its own unique state
+- ✅ **When switching views**: Unique edits in any Table Mode row are preserved
+- ✅ **Gallery Mode behavior**: Should still update the store and any rows that haven't been customized
 
 ## Getting Started
 
@@ -65,9 +64,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### Development Tips
 
 1. **Open the browser console** - All state changes are logged for debugging
-2. **Test both views** - Make sure Gallery and Table views work independently
-3. **Test the infinite loop** - Try entering "example.com" in Gallery's Link URL field
-4. **Watch the console logs** - They'll help you understand the update cycle
+2. **Test the bug** - Make unique edits in Table Mode, switch views, and watch them disappear
+3. **Test the fix** - After fixing, unique edits should persist when switching views
+4. **Check the store** - The global store state is displayed at the bottom of the page
 
 ## Project Structure
 
@@ -75,43 +74,37 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 app/
 ├── page.tsx                    # Main page with metadata
 └── components/
-    ├── BuggyApp.tsx           # Main component with both bugs (FIX THIS!)
-    ├── buggy-store.ts         # Zustand store (DO NOT MODIFY)
+    ├── AdDraftApp.tsx         # Main component with the state sync bug (FIX THIS!)
+    ├── store.ts               # Zustand store (DO NOT MODIFY)
     └── types.ts               # TypeScript types
 ```
 
 ## Success Criteria
 
-### Challenge 1: State Forking
-- [ ] Edit Gallery view → Switch to Table → Gallery edits are preserved
-- [ ] Edit Table view → Switch to Gallery → Table edits are preserved
-- [ ] Load preset data → Both views sync to the new state
-- [ ] Each view maintains its own local edits without interfering with the other
-- [ ] Gallery uses debounced saves (500ms delay)
-- [ ] Table uses immediate saves (no delay)
+After fixing the bug, verify:
 
-### Challenge 2: Infinite Loop Fix
-- [ ] Enter "example.com" in Gallery Link URL → No crash
-- [ ] Link auto-formatting works correctly (adds https://)
-- [ ] Page remains responsive and stable
-- [ ] Console doesn't show repeated update loops
-- [ ] Link validation happens only when necessary
+- [ ] Edit Row 1 in Table Mode → Row 1 gets unique state
+- [ ] Edit Row 2 in Table Mode → Row 2 gets unique state (different from Row 1)
+- [ ] Switch to Gallery Mode → Gallery shows store state
+- [ ] Switch back to Table Mode → Both rows maintain their unique edits ✅
+- [ ] Edit in Gallery Mode → Store updates, and Table Mode rows (that haven't been customized) should sync
+- [ ] Customer doesn't lose their work when switching views ✅
 
 ## Hints
 
-### For Challenge 1 (State Forking)
-- Look at the `useEffect` that syncs from `storeData`
-- When should it sync? When shouldn't it?
-- Consider tracking whether the user is currently editing
-- Think about component mount vs. updates
-- What's the difference between "initial load" and "store changed from elsewhere"?
+### Understanding the Problem
 
-### For Challenge 2 (Infinite Loop)
-- Search for the link URL validation effect
-- Look at its dependencies array
-- What triggers this effect? Should it trigger that often?
-- How can you prevent it from running on its own updates?
-- Consider: should validation happen on every render?
+- Look at the `useEffect` hooks in both `GalleryView` and `TableView`
+- Notice how they sync from `storeData` on every store change
+- Think about when syncing should happen vs when it shouldn't
+- The key insight: **Once a row has unique edits, it should stop syncing from the store**
+
+### Potential Solutions
+
+- Track which rows have been customized/forked
+- Only sync rows that haven't been customized
+- Consider using refs or state flags to track "has this row been edited?"
+- When should a row sync? Only on initial load, or when explicitly reset?
 
 ## Tech Stack
 
@@ -124,33 +117,33 @@ app/
 
 After completing this challenge, you'll understand:
 
-1. **State Forking** - How to manage independent local state that syncs from a global store
-2. **useEffect Dependencies** - How to avoid infinite loops and unnecessary re-renders
-3. **Debounced State Updates** - Implementing delayed saves for better UX
-4. **State Synchronization** - Coordinating multiple views of the same data
+1. **State Forking** - How to manage independent local state that initially syncs from a global store
+2. **useEffect Dependencies** - When and when not to sync from global state
+3. **State Synchronization Patterns** - Coordinating multiple views of the same data
+4. **Preventing Data Loss** - Ensuring user edits aren't accidentally overwritten
 5. **React Debugging** - Using console logs and React DevTools to trace state flow
 
 ## Common Pitfalls
 
 1. **Syncing too aggressively** - Not every store change should trigger a local state update
-2. **Missing dependencies** - Or having too many dependencies in useEffect
-3. **State update loops** - Updating state in an effect that depends on that state
-4. **Closure issues** - Using stale values in callbacks and effects
-5. **Over-engineering** - The fixes are simpler than you think!
+2. **Missing the "fork point"** - Once a row becomes unique, it should stop syncing
+3. **State update loops** - Be careful not to create circular dependencies
+4. **Over-engineering** - The fix can be simpler than you think!
 
 ## Need Help?
 
-- Check the detailed comments in `BuggyApp.tsx`
-- The bugs are intentionally obvious once you know where to look
-- Start with Challenge 2 (infinite loop) - it's more straightforward
-- Then tackle Challenge 1 (state forking) - it requires more thought
+- Check the detailed comments in `AdDraftApp.tsx` - they explain the bug
+- The bug is in the `useEffect` hooks that sync from the store
+- The key is to track whether each row has been customized and prevent syncing for customized rows
+- Start by understanding when each row should sync vs when it should maintain its own state
 
 ## About This Challenge
 
 This challenge was created to test practical React skills that matter in production:
+
 - State management patterns
-- Understanding React's rendering cycle
-- Debugging useEffect issues
-- Building multi-view interfaces
+- Understanding when to sync vs when to fork state
+- Preventing data loss in multi-view interfaces
+- Building reliable user experiences
 
 Good luck! 🚀
