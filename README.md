@@ -75,7 +75,7 @@ app/
 ├── page.tsx                    # Main page with metadata
 └── components/
     ├── AdDraftApp.tsx         # Main component with the state sync bug (FIX THIS!)
-    ├── store.ts               # Zustand store (DO NOT MODIFY)
+    ├── store.ts               # Zustand store
     └── types.ts               # TypeScript types
 ```
 
