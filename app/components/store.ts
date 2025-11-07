@@ -1,7 +1,10 @@
 /**
- * Zustand Store - 
+ * Zustand Store
  *
  * This store holds the ad copy data that is shared between views.
+ * 
+ * NOTE: You can modify this store structure and implementation to fix the state synchronization bug.
+ * Feel free to add new state properties, methods, or change the existing structure as needed.
  */
 
 import { create } from 'zustand';

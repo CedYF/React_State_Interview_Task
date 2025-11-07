@@ -182,8 +182,6 @@ const GalleryView = () => {
  *
  * Shows 2 rows (one per media item).
  * Initially both rows show the same data, but user can edit each row independently.
- *
- * BUG: When switching views, all unique edits are lost!
  */
 const TableView = () => {
   const storeData = useAdStore(state => state.adCopy);
@@ -201,11 +199,8 @@ const TableView = () => {
   const [row2CTA, setRow2CTA] = useState(storeData.callToAction);
   const [row2LaunchAs, setRow2LaunchAs] = useState(storeData.launchAs);
 
-  // BUG: This overwrites ALL rows whenever store changes!
-  // This is the problem - when user makes any row unique, then switches to Gallery
-  // and back, this effect overwrites all unique edits.
   useEffect(() => {
-    console.log('[Table] 📥 Syncing ALL rows from store (OVERWRITES ANY UNIQUE EDITS!)');
+    console.log('[Table] 📥 Syncing rows from store');
     setRow1Headline(storeData.headline);
     setRow1Description(storeData.description);
     setRow1CTA(storeData.callToAction);
@@ -217,18 +212,15 @@ const TableView = () => {
     setRow2LaunchAs(storeData.launchAs);
   }, [storeData]);
 
-  // When Row 1 changes, update the store (so Gallery can see it)
   const handleRow1Change = (field: keyof AdCopy, value: string) => {
     if (field === 'headline') setRow1Headline(value);
     if (field === 'description') setRow1Description(value);
     if (field === 'callToAction') setRow1CTA(value);
     if (field === 'launchAs') setRow1LaunchAs(value as 'active' | 'paused');
 
-    // Update store so Gallery mode can sync
     updateField(field, value);
   };
 
-  // When Row 2 changes, just update local state (don't update store)
   const handleRow2Change = (field: keyof AdCopy, value: string) => {
     if (field === 'headline') setRow2Headline(value);
     if (field === 'description') setRow2Description(value);
@@ -371,7 +363,7 @@ const TableView = () => {
           2 rows selected
         </div>
         <div className="text-xs text-yellow-600 bg-yellow-50 px-3 py-2 rounded">
-          <strong>⚠️ Try this:</strong> Make any row unique, then switch to Gallery Mode and back. Your unique edits will be lost!
+          <strong>⚠️ Test:</strong> Make any row unique, then switch to Gallery Mode and back.
         </div>
       </div>
     </div>
